@@ -1,0 +1,178 @@
+<html>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis.css" type="text/css" />
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis-network.min.js"> </script>
+<center>
+<h1 id='current_spy_name'>{{ current_spy_name }}</h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+
+<style type="text/css">
+
+        #mynetwork {
+            width: 1100px;
+            height: 900px;
+            background-color: #ffffff;
+            border: 1px solid lightgray;
+            position: relative;
+            float: left;
+        }
+
+        
+
+        
+
+        
+</style>
+
+</head>
+
+
+<body>
+<div id = "mynetwork"></div>
+<img id="loading" style="display: none;" src="../static/donwload.webp" />
+<button id="add">Add</button>
+<button id="clear">Clear</button>
+<br><br>
+Time in city:
+<input type="text" id="time_in_city" placeholder="{{ time_in_city }}"></input>
+<br><br>
+Flights number:
+<input type="text" id="flights_number" placeholder="{{ flights_number }}"></input>
+<br><br>
+<input type="checkbox" id="multidigraph">MultiDiGraph
+
+<br><br>
+<br ><b>Machine-selected names:</b>
+<ul id="spy_list">
+    {% for spy_name in spy_list %}
+    <li class="item">{{ spy_name }}</li>
+    {% endfor %}
+</ul>
+
+<b>Potential spies names:</b>
+<ul id="ponetial_spy_list">
+    {% for potential_spy_name in potential_spy_list %}
+    <li class="potential_item">{{ potential_spy_name }}</li>
+    {% endfor %}
+</ul>
+
+
+<script type="text/javascript">
+
+    // initialize global variables.
+    var edges;
+    var nodes;
+    var network; 
+    var container;
+    var options, data;
+
+    
+    // This method is responsible for drawing the graph, returns the drawn network
+    function drawGraph() {
+        var container = document.getElementById('mynetwork');
+        
+        
+
+        // parsing and collecting nodes and edges from the python
+        nodes = new vis.DataSet({{ nodes_info | tojson() }});
+        edges = new vis.DataSet({{ edges_info | tojson() }});
+
+        // adding nodes and edges to the graph
+        data = {nodes: nodes, edges: edges};
+
+        var options = {"physics": {"forceAtlas2Based": {"gravitationalConstant": -2000, "centralGravity": 0.1, "springLength": 160, "springConstant": 0.02, "avoidOverlap": 1}, "minVelocity": 0.75, "solver": "forceAtlas2Based", "timestep": 0.22}};
+        
+        
+
+        
+
+        network = new vis.Network(container, data, options);
+
+        
+
+
+        
+
+        return network;
+
+    }
+
+    function send_req(url) {
+        const request = new XMLHttpRequest();
+        document.getElementById("loading").style.display = null;
+
+        request.open('GET', url);
+
+        request.setRequestHeader('Content-Type', 'application/x-www-form-url');
+        
+        request.addEventListener("readystatechange", () => {
+            if (request.readyState === 4 && request.status === 200) {
+                document.body.innerHTML = '';
+                document.write(request.responseText);
+            }
+        });
+        
+        request.send();
+    }
+
+    drawGraph();
+
+    document.getElementById('multidigraph').checked={{ multidigraph | tojson()}};
+
+
+    document.getElementById('multidigraph').addEventListener("click", function() {
+        if (document.getElementById('multidigraph').checked){
+            send_req("http://localhost:5000/update-list?multidigraph=1")
+        }
+        if (!document.getElementById('multidigraph').checked){
+            send_req("http://localhost:5000/update-list?multidigraph=0")
+        }
+    })
+
+
+    document.getElementById('clear').addEventListener("click", function() {
+        send_req("http://localhost:5000/clear-potential-spy")
+    })
+
+
+    document.getElementById('add').addEventListener("click", function() {
+        var cur_spy_name = document.getElementById('current_spy_name').innerHTML
+        send_req("http://localhost:5000/add-potential-spy?potential_spy_name=" + cur_spy_name)
+    })
+
+
+    document.getElementById('time_in_city').onkeypress = function(e){
+        if (!e) e = window.event;
+        var keyCode = e.keyCode || e.which;
+        if (keyCode == '13'){
+            send_req("http://localhost:5000/update-list?time_in_city=" + e.target.value)
+        }
+    }
+
+    document.getElementById('flights_number').onkeypress = function(e){
+        if (!e) e = window.event;
+        var keyCode = e.keyCode || e.which;
+        if (keyCode == '13'){
+            send_req("http://localhost:5000/update-list?flights_number=" + e.target.value)
+        }
+    }
+
+    document.getElementById("spy_list").addEventListener("click", function(e) {
+        if (e.target && e.target.matches("li.item")) {
+            send_req("http://localhost:5000/create?spy_name=" + e.target.innerText)
+        }
+    });
+
+    document.getElementById("ponetial_spy_list").addEventListener("click", function(e) {
+        if (e.target && e.target.matches("li.potential_item")) {
+            send_req("http://localhost:5000/create?spy_name=" + e.target.innerText)
+        }
+    });
+
+
+</script>
+</body>
+</html>

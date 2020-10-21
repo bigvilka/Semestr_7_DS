@@ -1,0 +1,25 @@
+{
+    "FLIGHTS_NUMBER": 90,
+    "TIME_IN_CITY": 600,
+    "MULTIDIGRAPH": true,
+    "SPY_LIST": [
+        "Valeriya Babushkina",
+        "Danil Kozlovskiy",
+        "Arsen Latyshev",
+        "Miroslava Kolpakova",
+        "Evelina Loseva",
+        "Grigoriy Goncharov",
+        "Robert Savin",
+        "Denis Kornilov",
+        "Arina Kosareva",
+        "Yasmina Shevtsova",
+        "Marina Andrianova",
+        "Alisa Uvarova",
+        "Anatoliy Sal'Nikov",
+        "Filipp Larionov",
+        "Oxana Kol'Tsova",
+        "Gleb Kalashnikov",
+        "Arina Rodionova"
+    ],
+    "POTENTIAL_SPY_LIST": []
+}
